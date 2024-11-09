@@ -3,7 +3,7 @@
 import sys
 import serial
 import serial.tools.list_ports
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import QMainWindow
 from PyQt5 import QtWidgets, QtCore
 from mainWindow import Ui_MainWindow
 
@@ -60,6 +60,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # 串口线程
         self.serial_thread = None
+        self.ReceiveData = ""  # 存储接收到的数据
+
+        # 标志串口是否已打开
+        self.serial_open = False
 
     def populate_ports(self):
         """填充串口列表到ComboBox"""
@@ -94,6 +98,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def on_port_selection_changed(self):
         """处理串口选择变化的事件"""
+        if self.serial_open:
+            print("串口已打开，不能更改端口")
+            return  # 如果串口已经打开，禁止更改端口
+
         selected_port = self.Port.currentData()  # 获取当前选中的串口
         if selected_port:
             ser.port = selected_port  # 设置串口号
@@ -136,7 +144,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def toggle_serial_port(self):
         """切换串口的打开和关闭"""
-        if ser.isOpen():
+        if self.serial_open:
             self.close_serial_port()
         else:
             self.open_serial_port()
@@ -148,6 +156,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             ser.open()
             if ser.isOpen():
                 print(f"串口 {ser.port} 打开成功！")
+                self.serial_open = True  # 标记串口已打开
                 # 启动串口数据读取线程
                 self.serial_thread = SerialThread(ser)
                 self.serial_thread.data_received.connect(self.update_received_data)
@@ -157,6 +166,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.SerialBtn.setText("关闭串口")
                 # 禁用 BLEBtn
                 self.BLEBtn.setEnabled(False)
+                # 禁用 Port 下拉框
+                self.Port.setEnabled(False)
             else:
                 print("串口打开失败！")
         except Exception as e:
@@ -169,17 +180,30 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.serial_thread.stop()  # 停止线程
             ser.close()
             print(f"串口 {ser.port} 已关闭")
+            self.serial_open = False  # 标记串口已关闭
             # 修改按钮文字为“打开串口”
             self.SerialBtn.setText("打开串口")
             # 启用 BLEBtn
             self.BLEBtn.setEnabled(True)
+            # 启用 Port 下拉框
+            self.Port.setEnabled(True)
         except Exception as e:
             print(f"关闭串口时发生错误: {e}")
 
     def update_received_data(self, data):
-        """更新接收到的数据"""
+        """接收到数据并存储"""
         print(f"接收到的数据: {data}")
-        self.SerialDataDisplay.append(data)  # 假设你有一个 `SerialDataDisplay` 来显示接收到的数据
+        self.ReceiveData += data + "\n"  # 将接收到的数据添加到 ReceiveData 中
+        self.process_received_data()  # 调用解包函数处理接收到的数据
+
+    def process_received_data(self):
+        """处理解包逻辑"""
+        # 在这里添加你自己的解包逻辑
+        print(f"当前接收到的数据: {self.ReceiveData}")
+        # 解包代码...
+        # 例如：
+        # result = your_unpacking_function(self.ReceiveData)
+        # self.ReceiveData = ""  # 清空数据，准备接收新的数据
 
 
 ser = serial.Serial()
