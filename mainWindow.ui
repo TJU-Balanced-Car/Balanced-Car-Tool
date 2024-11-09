@@ -308,7 +308,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
          <x>490</x>
@@ -322,7 +322,7 @@
          <number>70</number>
         </property>
         <item>
-         <widget class="QPushButton" name="pushButton">
+         <widget class="QPushButton" name="BLEBtn">
           <property name="font">
            <font>
             <family>小米兰亭</family>
@@ -335,7 +335,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_2">
+         <widget class="QPushButton" name="SerialBtn">
           <property name="font">
            <font>
             <family>小米兰亭</family>
@@ -411,7 +411,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_11">
+           <widget class="QLabel" name="Roll">
             <property name="minimumSize">
              <size>
               <width>86</width>
@@ -576,6 +576,21 @@
          </layout>
         </item>
        </layout>
+      </widget>
+      <widget class="QGraphicsView" name="ModelView">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>40</y>
+         <width>241</width>
+         <height>201</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QGraphicsView {
+	border: none;
+}</string>
+       </property>
       </widget>
      </widget>
     </item>
@@ -840,7 +855,7 @@
          <property name="frameShadow">
           <enum>QFrame::Raised</enum>
          </property>
-         <widget class="QPushButton" name="pushButton_3">
+         <widget class="QPushButton" name="ConnectStatus">
           <property name="geometry">
            <rect>
             <x>364</x>

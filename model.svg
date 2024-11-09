@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="256" viewBox="0 0 128 256">
+  <defs>
+    <style>
+      .cls-1, .cls-2 {
+        fill: #eaeaea;
+      }
+
+      .cls-1 {
+        stroke: #34f600;
+      }
+
+      .cls-1, .cls-2, .cls-3 {
+        stroke-width: 1px;
+        fill-rule: evenodd;
+      }
+
+      .cls-2 {
+        stroke: blue;
+      }
+
+      .cls-3 {
+        fill: none;
+        stroke: #000;
+      }
+    </style>
+  </defs>
+  <path id="直线_2" data-name="直线 2" class="cls-1" d="M22,126v-1h83v1H22Z"/>
+  <path id="直线_1" data-name="直线 1" class="cls-2" d="M63,18h1V231H63V18Z"/>
+  <path id="矩形_1" data-name="矩形 1" class="cls-3" d="M34,54H93V202H34V54Z"/>
+  <path id="直线_3" data-name="直线 3" class="cls-2" d="M60.639,22.656l-0.724-.689,3.447-3.622,0.724,0.689Z"/>
+  <path id="直线_3-2" data-name="直线 3" class="cls-2" d="M67.919,23.542l-0.88.553-2.767-4.4,0.88-.553Z"/>
+</svg>
