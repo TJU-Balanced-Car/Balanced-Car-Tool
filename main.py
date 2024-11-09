@@ -8,6 +8,9 @@ from PyQt5 import QtWidgets, QtCore
 from mainWindow import Ui_MainWindow
 
 
+ser = serial.Serial()
+
+
 def list_serial_ports():
     """获取串口列表"""
     ports = serial.tools.list_ports.comports()
@@ -168,10 +171,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.BLEBtn.setEnabled(False)
                 # 禁用 Port 下拉框
                 self.Port.setEnabled(False)
+
+                # 更新 ConnectStatus 的 QLabel 控件
+                self.ConnectStatus.setText(f"{ser.port} 已打开")
+                self.ConnectStatus.setStyleSheet("color: green;")  # 设置为绿色
             else:
                 print("串口打开失败！")
+                self.update_connect_status_failure(f"{ser.port} 打开失败")
         except Exception as e:
             print(f"串口打开时发生错误: {e}")
+            self.update_connect_status_failure(f"{ser.port} 打开失败: {e}")
 
     def close_serial_port(self):
         """关闭串口"""
@@ -187,8 +196,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.BLEBtn.setEnabled(True)
             # 启用 Port 下拉框
             self.Port.setEnabled(True)
+
+            # 更新 ConnectStatus 的 QLabel 控件
+            self.ConnectStatus.setText(f"{ser.port} 已关闭")
+            self.ConnectStatus.setStyleSheet("color: red;")  # 设置为红色
         except Exception as e:
             print(f"关闭串口时发生错误: {e}")
+            self.update_connect_status_failure(f"{ser.port} 关闭失败: {e}")
+
+    def update_connect_status_failure(self, message):
+        """更新 ConnectStatus 显示失败消息"""
+        self.ConnectStatus.setText(message)
+        self.ConnectStatus.setStyleSheet("color: red;")  # 设置为红色
 
     def update_received_data(self, data):
         """接收到数据并存储"""
@@ -204,9 +223,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 例如：
         # result = your_unpacking_function(self.ReceiveData)
         # self.ReceiveData = ""  # 清空数据，准备接收新的数据
-
-
-ser = serial.Serial()
 
 
 def main():

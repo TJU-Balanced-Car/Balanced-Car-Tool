@@ -855,23 +855,14 @@
          <property name="frameShadow">
           <enum>QFrame::Raised</enum>
          </property>
-         <widget class="QPushButton" name="ConnectStatus">
+         <widget class="QLabel" name="ConnectStatus">
           <property name="geometry">
            <rect>
-            <x>364</x>
+            <x>380</x>
             <y>0</y>
             <width>91</width>
-            <height>20</height>
+            <height>21</height>
            </rect>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">QPushButton {
-	background-color: white;
-	border: none;
-}
-QPushButton::hover{
-	background-color: rgb(231, 231, 231);
-}</string>
           </property>
           <property name="text">
            <string/>

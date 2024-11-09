@@ -374,15 +374,8 @@ class Ui_MainWindow(object):
         self.frame_2.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.frame_2.setFrameShadow(QtWidgets.QFrame.Raised)
         self.frame_2.setObjectName("frame_2")
-        self.ConnectStatus = QtWidgets.QPushButton(self.frame_2)
-        self.ConnectStatus.setGeometry(QtCore.QRect(364, 0, 91, 20))
-        self.ConnectStatus.setStyleSheet("QPushButton {\n"
-"    background-color: white;\n"
-"    border: none;\n"
-"}\n"
-"QPushButton::hover{\n"
-"    background-color: rgb(231, 231, 231);\n"
-"}")
+        self.ConnectStatus = QtWidgets.QLabel(self.frame_2)
+        self.ConnectStatus.setGeometry(QtCore.QRect(380, 0, 91, 21))
         self.ConnectStatus.setText("")
         self.ConnectStatus.setObjectName("ConnectStatus")
         self.gridLayout_3.addWidget(self.frame_2, 2, 0, 1, 1)
