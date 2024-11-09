@@ -6,10 +6,26 @@ import serial.tools.list_ports
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5 import QtWidgets, QtCore
 from mainWindow import Ui_MainWindow
+from PyQt5.QtSvg import QGraphicsSvgItem
+from PyQt5.QtCore import Qt
 
 
 ser = serial.Serial()
-
+class UnpackedData:
+    def __init__(self):
+        self.Roll = 0.0
+        self.Motor1Speed = 0.0
+        self.Motor2Speed = 0.0
+        self.ServoAngle = 0.0
+        self.VerticalKp = 0.0
+        self.VerticalKi = 0.0
+        self.VerticalKd = 0.0
+        self.VerticalOut = 0.0
+        self.VelocityKp = 0.0
+        self.VelocityKi = 0.0
+        self.VelocityOut = 0.0
+# 创建UnpackedData实例
+unpacked_data = UnpackedData()
 
 def list_serial_ports():
     """获取串口列表"""
@@ -67,6 +83,37 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # 标志串口是否已打开
         self.serial_open = False
+
+        # 创建场景和视图
+        self.scene = QtWidgets.QGraphicsScene()
+        self.ModelView.setScene(self.scene)  # 将 QGraphicsView 设置为该场景
+
+        # 加载 SVG 图片并插入到场景
+        self.model_svg_item = QGraphicsSvgItem('model.svg')  # 加载本目录中的 Model.svg
+        self.scene.addItem(self.model_svg_item)  # 将 SVG 图片添加到场景中
+
+        # 自动缩放图片适应视图
+        self.scale_model_to_fit_view()
+
+    def scale_model_to_fit_view(self):
+        """自动缩放 SVG 图片以适应 QGraphicsView"""
+        # 预设已知的尺寸
+        svg_width = 351  # SVG 图片的宽度
+        svg_height = 892  # SVG 图片的高度
+        view_height = self.ModelView.height()  # 获取 ModelView 的高度
+
+        # 计算缩放比例：我们让图片的高度占满 ModelView
+        scale_factor = view_height / svg_height
+
+        # 设置缩放比例
+        self.model_svg_item.setScale(scale_factor)
+
+        # 如果需要根据缩放后的宽度调整位置，使用下面的代码来居中显示
+        new_width = svg_width * scale_factor
+        new_height = svg_height * scale_factor
+
+        # 居中图像 (如果需要)
+        self.model_svg_item.setPos((self.ModelView.width() - new_width) / 2, 0)
 
     def populate_ports(self):
         """填充串口列表到ComboBox"""
@@ -222,8 +269,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 解包代码...
         # 例如：
         # result = your_unpacking_function(self.ReceiveData)
+        roll_angle = unpacked_data.Roll  # 获取 Roll 角度
+
+        # 将图片旋转到 unpacked_data.Roll 角度
+        self.rotate_model(roll_angle)
         # self.ReceiveData = ""  # 清空数据，准备接收新的数据
 
+    def rotate_model(self, angle):
+        """旋转 Model.svg 图片到指定的角度"""
+        # 旋转图片：QGraphicsSvgItem 的 setRotation 方法接受角度值
+        self.model_svg_item.setRotation(angle)
+        print(f"Model 图像已旋转到 {angle} 度")
 
 def main():
     QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)

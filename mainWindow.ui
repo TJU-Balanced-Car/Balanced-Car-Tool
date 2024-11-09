@@ -459,7 +459,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_25">
+           <widget class="QLabel" name="Motor1Speed">
             <property name="minimumSize">
              <size>
               <width>86</width>
@@ -507,7 +507,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_31">
+           <widget class="QLabel" name="Motor2Speed">
             <property name="minimumSize">
              <size>
               <width>86</width>
@@ -555,7 +555,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_33">
+           <widget class="QLabel" name="ServoAngle">
             <property name="minimumSize">
              <size>
               <width>86</width>
@@ -580,10 +580,10 @@
       <widget class="QGraphicsView" name="ModelView">
        <property name="geometry">
         <rect>
-         <x>30</x>
-         <y>40</y>
-         <width>241</width>
-         <height>201</height>
+         <x>50</x>
+         <y>20</y>
+         <width>201</width>
+         <height>231</height>
         </rect>
        </property>
        <property name="styleSheet">
@@ -673,7 +673,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="label_13">
+              <widget class="QLabel" name="VerticalKp">
                <property name="minimumSize">
                 <size>
                  <width>122</width>
@@ -721,7 +721,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="label_15">
+              <widget class="QLabel" name="VerticalKi">
                <property name="minimumSize">
                 <size>
                  <width>122</width>
@@ -769,7 +769,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="label_17">
+              <widget class="QLabel" name="VerticalKd">
                <property name="minimumSize">
                 <size>
                  <width>122</width>
@@ -817,7 +817,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="label_27">
+              <widget class="QLabel" name="VerticalOut">
                <property name="minimumSize">
                 <size>
                  <width>122</width>
@@ -922,7 +922,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="label_19">
+              <widget class="QLabel" name="VelocityKp">
                <property name="minimumSize">
                 <size>
                  <width>122</width>
@@ -965,12 +965,12 @@
                 </font>
                </property>
                <property name="text">
-                <string>Kd：</string>
+                <string>Ki：</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="label_21">
+              <widget class="QLabel" name="VelocityKi">
                <property name="minimumSize">
                 <size>
                  <width>122</width>
@@ -1018,7 +1018,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="label_29">
+              <widget class="QLabel" name="VelocityOut">
                <property name="minimumSize">
                 <size>
                  <width>122</width>
