@@ -4,6 +4,7 @@ import sys
 import serial
 import serial.tools.list_ports
 from PyQt5.QtWidgets import QMainWindow, QGraphicsItem
+from PyQt5.QtCore import QTimer
 from PyQt5 import QtWidgets, QtCore
 from mainWindow import Ui_MainWindow
 from PyQt5.QtSvg import QGraphicsSvgItem
@@ -54,20 +55,27 @@ class SerialThread(QtCore.QThread):
     def __init__(self, ser):
         super().__init__()
         self.ser = ser
+        self.main_window = MainWindow()
         self.running = True
 
     def run(self):
         """线程主函数：持续读取串口数据"""
         while self.running:
-            if self.ser.in_waiting > 0:
-                data = self.ser.readline()  # 读取一行数据
-                if data:
-                    try:
-                        decoded_data = data.decode('utf-8').strip()
-                    except UnicodeDecodeError as e:
-                        print(f"解码错误: {e}")
-                        decoded_data = ""
-                    self.data_received.emit(decoded_data)  # 通过信号传递数据
+            try:
+                if self.ser.in_waiting > 0:
+                    data = self.ser.readline()  # 读取一行数据
+                    if data:
+                        try:
+                            decoded_data = data.decode('utf-8').strip()
+                        except UnicodeDecodeError as e:
+                            print(f"解码错误: {e}")
+                            decoded_data = ""
+                        self.data_received.emit(decoded_data)  # 通过信号传递数据
+            except serial.SerialException as e:
+                print(f"串口错误: {e}")
+                self.main_window.close_serial_port()
+                # 处理错误，比如重新打开串口或退出线程
+                break
 
     def stop(self):
         """停止线程"""
@@ -114,6 +122,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 自动缩放图片适应视图
         self.scale_model_to_fit_view()
 
+        # 定时器检查串口变化
+        self.port_check_timer = QtCore.QTimer(self)
+        self.port_check_timer.timeout.connect(self.check_ports)
+        self.port_check_timer.start(5000)  # 每5000ms（5秒）检查一次串口列表
+
+
     def scale_model_to_fit_view(self):
         """自动缩放 SVG 图片以适应 QGraphicsView"""
         # 预设已知的尺寸
@@ -148,6 +162,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         roll_angle = unpacked_data.Roll
         self.rotate_model(roll_angle)
+
+    def check_ports(self):
+        """检查串口列表是否有变化，并更新 Port 下拉框"""
+        available_ports = list_serial_ports()
+        current_ports = [self.Port.itemText(i) for i in range(self.Port.count())]
+
+        # 获取所有串口描述符，比较是否有变化
+        new_ports = [f"{port} - {description}" for port, description in available_ports]
+
+        if set(current_ports) != set(new_ports):
+            # 如果串口列表有变化，重新填充串口列表
+            self.populate_ports()
 
     def populate_ports(self):
         """填充串口列表到ComboBox"""
@@ -291,7 +317,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.update_connect_status_failure(f"{ser.port} 打开失败")
         except Exception as e:
             print(f"串口打开时发生错误: {e}")
-            self.update_connect_status_failure(f"{ser.port} 打开失败: {e}")
+            self.update_connect_status_failure(f"{ser.port} 打开失败")
 
     def close_serial_port(self):
         """关闭串口"""

@@ -375,7 +375,7 @@ class Ui_MainWindow(object):
         self.frame_2.setFrameShadow(QtWidgets.QFrame.Raised)
         self.frame_2.setObjectName("frame_2")
         self.ConnectStatus = QtWidgets.QLabel(self.frame_2)
-        self.ConnectStatus.setGeometry(QtCore.QRect(380, 0, 91, 21))
+        self.ConnectStatus.setGeometry(QtCore.QRect(370, 0, 101, 21))
         self.ConnectStatus.setText("")
         self.ConnectStatus.setObjectName("ConnectStatus")
         self.gridLayout_3.addWidget(self.frame_2, 2, 0, 1, 1)
