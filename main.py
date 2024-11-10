@@ -3,29 +3,43 @@
 import sys
 import serial
 import serial.tools.list_ports
-from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtWidgets import QMainWindow, QGraphicsItem
 from PyQt5 import QtWidgets, QtCore
 from mainWindow import Ui_MainWindow
 from PyQt5.QtSvg import QGraphicsSvgItem
-from PyQt5.QtCore import Qt
+import re
 
 
 ser = serial.Serial()
 class UnpackedData:
     def __init__(self):
         self.Roll = 0.0
-        self.Motor1Speed = 0.0
-        self.Motor2Speed = 0.0
-        self.ServoAngle = 0.0
+        self.Motor1Speed = 0
+        self.Motor2Speed = 0
+        self.ServoAngle = 0
         self.VerticalKp = 0.0
         self.VerticalKi = 0.0
         self.VerticalKd = 0.0
-        self.VerticalOut = 0.0
+        self.VerticalOut = 0
         self.VelocityKp = 0.0
         self.VelocityKi = 0.0
-        self.VelocityOut = 0.0
+        self.VelocityOut = 0
 # 创建UnpackedData实例
 unpacked_data = UnpackedData()
+# 正则表达式匹配模式
+pattern = {
+    'Roll': r'R:\s*([+-]?\d*\.\d+|\d+)',  # 匹配R:后面的float数字
+    'Motor1Speed': r'M1:\s*(\d+)',         # 匹配M1:后面的int数字
+    'Motor2Speed': r'M2:\s*(\d+)',         # 匹配M2:后面的int数字
+    'ServoAngle': r'S:\s*(\d+)',           # 匹配S:后面的int数字
+    'VerticalKp': r'Lp:\s*([+-]?\d*\.\d+|\d+)',  # 匹配Lp:后的float数字
+    'VerticalKi': r'Li:\s*([+-]?\d*\.\d+|\d+)',  # 匹配Li:后的float数字
+    'VerticalKd': r'Ld:\s*([+-]?\d*\.\d+|\d+)',  # 匹配Ld:后的float数字
+    'VerticalOut': r'Lo:\s*(\d+)',         # 匹配Lo:后的int数字
+    'VelocityKp': r'Yp:\s*([+-]?\d*\.\d+|\d+)',  # 匹配Yp:后的float数字
+    'VelocityKi': r'Yi:\s*([+-]?\d*\.\d+|\d+)',  # 匹配Yi:后的float数字
+    'VelocityOut': r'Yo:\s*(\d+)'          # 匹配Yo:后的int数字
+}
 
 def list_serial_ports():
     """获取串口列表"""
@@ -48,7 +62,11 @@ class SerialThread(QtCore.QThread):
             if self.ser.in_waiting > 0:
                 data = self.ser.readline()  # 读取一行数据
                 if data:
-                    decoded_data = data.decode('utf-8').strip()
+                    try:
+                        decoded_data = data.decode('utf-8').strip()
+                    except UnicodeDecodeError as e:
+                        print(f"解码错误: {e}")
+                        decoded_data = ""
                     self.data_received.emit(decoded_data)  # 通过信号传递数据
 
     def stop(self):
@@ -61,6 +79,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setupUi(self)
+        self.unpacked_data = unpacked_data
         self.populate_ports()  # 填充 Port 下拉菜单
         self.populate_baudrate()  # 填充 Baudrate 下拉菜单
         self.populate_bytesize()  # 填充 Bytesize 下拉菜单
@@ -98,22 +117,37 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def scale_model_to_fit_view(self):
         """自动缩放 SVG 图片以适应 QGraphicsView"""
         # 预设已知的尺寸
-        svg_width = 351  # SVG 图片的宽度
-        svg_height = 892  # SVG 图片的高度
-        view_height = self.ModelView.height()  # 获取 ModelView 的高度
+        svg_width = 84  # SVG 图片的宽度
+        svg_height = 214  # SVG 图片的高度
 
-        # 计算缩放比例：我们让图片的高度占满 ModelView
-        scale_factor = view_height / svg_height
+        scale_factor = 1.0
 
         # 设置缩放比例
         self.model_svg_item.setScale(scale_factor)
 
         # 如果需要根据缩放后的宽度调整位置，使用下面的代码来居中显示
         new_width = svg_width * scale_factor
-        new_height = svg_height * scale_factor
+        # new_height = svg_height * scale_factor
 
-        # 居中图像 (如果需要)
+        # 居中图像
         self.model_svg_item.setPos((self.ModelView.width() - new_width) / 2, 0)
+
+    def update_labels_with_unpacked_data(self, unpacked_data):
+        """更新界面上所有 QLabels 的文本内容"""
+        self.Roll.setText(f"{unpacked_data.Roll:.2f}")
+        self.Motor1Speed.setText(f"{unpacked_data.Motor1Speed}")
+        self.Motor2Speed.setText(f"{unpacked_data.Motor2Speed}")
+        self.ServoAngle.setText(f"{unpacked_data.ServoAngle}")
+        self.VerticalKp.setText(f"{unpacked_data.VerticalKp:.2f}")
+        self.VerticalKi.setText(f"{unpacked_data.VerticalKi:.2f}")
+        self.VerticalKd.setText(f"{unpacked_data.VerticalKd:.2f}")
+        self.VerticalOut.setText(f"{unpacked_data.VerticalOut}")
+        self.VelocityKp.setText(f"{unpacked_data.VelocityKp:.2f}")
+        self.VelocityKi.setText(f"{unpacked_data.VelocityKi:.2f}")
+        self.VelocityOut.setText(f"{unpacked_data.VelocityOut}")
+
+        roll_angle = unpacked_data.Roll
+        self.rotate_model(roll_angle)
 
     def populate_ports(self):
         """填充串口列表到ComboBox"""
@@ -156,41 +190,71 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if selected_port:
             ser.port = selected_port  # 设置串口号
             print(f"选中的串口是: {ser.port}")
-            self.open_serial_port()  # 打开串口
+            # self.open_serial_port()  # 打开串口
 
     def on_baudrate_changed(self):
         """处理波特率变化的事件"""
         selected_baudrate = self.Baudrate.currentText()  # 获取当前选中的波特率
-        ser.baudrate = int(selected_baudrate)  # 设置波特率
-        print(f"选中的波特率是: {ser.baudrate}")
+        if ser.is_open:
+            self.close_serial_port()  # 关闭串口
+            ser.baudrate = int(selected_baudrate)  # 设置新的波特率
+            self.open_serial_port()  # 重新打开串口
+        else:
+            ser.baudrate = int(selected_baudrate)  # 设置波特率
+            print(f"选中的波特率是: {ser.baudrate}")
 
     def on_bytesize_changed(self):
         """处理数据位数变化的事件"""
         selected_bytesize = self.Bytesize.currentText()  # 获取当前选中的数据位数
-        ser.bytesize = int(selected_bytesize)  # 设置数据位数
-        print(f"选中的数据位数是: {ser.bytesize}")
+        if ser.is_open:
+            self.close_serial_port()  # 关闭串口
+            ser.bytesize = int(selected_bytesize)  # 设置数据位数
+            self.open_serial_port()  # 重新打开串口
+        else:
+            ser.bytesize = int(selected_bytesize)  # 设置数据位数
+            print(f"选中的数据位数是: {ser.bytesize}")
 
     def on_stopbits_changed(self):
         """处理停止位变化的事件"""
         selected_stopbits = self.Stopbits.currentText()  # 获取当前选中的停止位
-        if selected_stopbits == '1':
-            ser.stopbits = serial.STOPBITS_ONE
-        elif selected_stopbits == '1.5':
-            ser.stopbits = serial.STOPBITS_ONE_POINT_FIVE
-        elif selected_stopbits == '2':
-            ser.stopbits = serial.STOPBITS_TWO
-        print(f"选中的停止位是: {ser.stopbits}")
+        if ser.is_open:
+            self.close_serial_port()  # 关闭串口
+            if selected_stopbits == '1':
+                ser.stopbits = serial.STOPBITS_ONE
+            elif selected_stopbits == '1.5':
+                ser.stopbits = serial.STOPBITS_ONE_POINT_FIVE
+            elif selected_stopbits == '2':
+                ser.stopbits = serial.STOPBITS_TWO
+            self.open_serial_port()  # 重新打开串口
+        else:
+            if selected_stopbits == '1':
+                ser.stopbits = serial.STOPBITS_ONE
+            elif selected_stopbits == '1.5':
+                ser.stopbits = serial.STOPBITS_ONE_POINT_FIVE
+            elif selected_stopbits == '2':
+                ser.stopbits = serial.STOPBITS_TWO
+            print(f"选中的停止位是: {ser.stopbits}")
 
     def on_parity_changed(self):
         """处理校验位变化的事件"""
         selected_parity = self.Parity.currentText()  # 获取当前选中的校验位
-        if selected_parity == '无':
-            ser.parity = 'N'  # 无校验
-        elif selected_parity == '奇校验':
-            ser.parity = 'O'  # 奇校验
-        elif selected_parity == '偶校验':
-            ser.parity = 'E'  # 偶校验
-        print(f"选中的校验位是: {ser.parity}")
+        if ser.is_open:
+            self.close_serial_port()  # 关闭串口
+            if selected_parity == '无':
+                ser.parity = 'N'  # 无校验
+            elif selected_parity == '奇校验':
+                ser.parity = 'O'  # 奇校验
+            elif selected_parity == '偶校验':
+                ser.parity = 'E'  # 偶校验
+            self.open_serial_port()  # 重新打开串口
+        else:
+            if selected_parity == '无':
+                ser.parity = 'N'  # 无校验
+            elif selected_parity == '奇校验':
+                ser.parity = 'O'  # 奇校验
+            elif selected_parity == '偶校验':
+                ser.parity = 'E'  # 偶校验
+            print(f"选中的校验位是: {ser.parity}")
 
     def toggle_serial_port(self):
         """切换串口的打开和关闭"""
@@ -204,7 +268,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         try:
             ser.timeout = 15  # 设置超时
             ser.open()
-            if ser.isOpen():
+            if ser.is_open:
                 print(f"串口 {ser.port} 打开成功！")
                 self.serial_open = True  # 标记串口已打开
                 # 启动串口数据读取线程
@@ -258,28 +322,49 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def update_received_data(self, data):
         """接收到数据并存储"""
-        print(f"接收到的数据: {data}")
-        self.ReceiveData += data + "\n"  # 将接收到的数据添加到 ReceiveData 中
-        self.process_received_data()  # 调用解包函数处理接收到的数据
+        # self.ReceiveData += data + "\n"  # 将接收到的数据添加到 ReceiveData 中
+        self.ReceiveData = data  # 覆盖而不是追加数据
+        self.process_received_data(self.ReceiveData)  # 调用解包函数处理接收到的数据
+        self.ReceiveData = ""  # 清空数据，准备接收新的数据
 
-    def process_received_data(self):
+    def process_received_data(self, data):
         """处理解包逻辑"""
         # 在这里添加你自己的解包逻辑
         print(f"当前接收到的数据: {self.ReceiveData}")
         # 解包代码...
-        # 例如：
-        # result = your_unpacking_function(self.ReceiveData)
-        roll_angle = unpacked_data.Roll  # 获取 Roll 角度
+        self.unpacking_data(data)
+        self.update_labels_with_unpacked_data(self.unpacked_data)
 
-        # 将图片旋转到 unpacked_data.Roll 角度
-        self.rotate_model(roll_angle)
-        # self.ReceiveData = ""  # 清空数据，准备接收新的数据
+    def unpacking_data(self, data):
+        for attribute, regex in pattern.items():
+            match = re.search(regex, data)
+            if match:  # 只有匹配成功时，才进行值的提取和转换
+                value = match.group(1)
+                # 将匹配的值转换为float或int后，更新self.unpacked_data的相应属性
+                if '.' in value:
+                    setattr(self.unpacked_data, attribute, float(value))
+                else:
+                    setattr(self.unpacked_data, attribute, int(value))
+            else:
+                # 如果没有匹配到，决定是否为属性赋一个默认值
+                setattr(self.unpacked_data, attribute, 0)  # 或者使用其他默认值
 
     def rotate_model(self, angle):
-        """旋转 Model.svg 图片到指定的角度"""
-        # 旋转图片：QGraphicsSvgItem 的 setRotation 方法接受角度值
+        """旋转并缩放 Model.svg 图片，使其适应 QGraphicsView，并围绕中心点旋转"""
+
+        # 获取图片的中心点
+        rect = self.model_svg_item.boundingRect()
+        center_x = rect.center().x()
+        center_y = rect.center().y()
+
+        # 设置旋转的原点为图片的中心
+        self.model_svg_item.setTransformOriginPoint(center_x, center_y)
+
+        # 旋转图片
         self.model_svg_item.setRotation(angle)
-        print(f"Model 图像已旋转到 {angle} 度")
+
+        print(f"Model 图像已旋转到 {angle} 度，并缩放到适应视图")
+
 
 def main():
     QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
