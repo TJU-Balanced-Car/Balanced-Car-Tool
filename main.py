@@ -3,12 +3,14 @@
 import sys
 import serial
 import serial.tools.list_ports
-from PyQt5.QtWidgets import QMainWindow, QGraphicsItem
-from PyQt5.QtCore import QTimer
+from PyQt5.QtWidgets import QMainWindow, QDialog
 from PyQt5 import QtWidgets, QtCore
 from mainWindow import Ui_MainWindow
+from BLEWindow import Ui_Form as Ui_BLEWindow
 from PyQt5.QtSvg import QGraphicsSvgItem
 import re
+import asyncio
+from bleak import BleakScanner
 
 
 ser = serial.Serial()
@@ -46,7 +48,6 @@ def list_serial_ports():
     """获取串口列表"""
     ports = serial.tools.list_ports.comports()
     return [(port.device, port.description) for port in ports]
-
 
 class SerialThread(QtCore.QThread):
     """串口数据读取线程"""
@@ -103,6 +104,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # 连接 SerialBtn 的点击信号到槽函数
         self.SerialBtn.clicked.connect(self.toggle_serial_port)
+        # 连接 BLEBtn 的点击信号到槽函数
+        self.BLEBtn.clicked.connect(self.open_ble_window)
 
         # 串口线程
         self.serial_thread = None
@@ -127,6 +130,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.port_check_timer.timeout.connect(self.check_ports)
         self.port_check_timer.start(5000)  # 每5000ms（5秒）检查一次串口列表
 
+        # 将实例变量放在__init__方法内初始化
+        self.ui_ble_window = None
+        self.ble_window = None
+
+    def open_ble_window(self):
+        # 打开 BLEWindow 子窗口
+        self.ble_window = QDialog()  # 可以根据需要修改为QDialog或QMainWindow
+        self.ui_ble_window = Ui_BLEWindow()  # 创建BLEWindow实例
+        self.ui_ble_window.setupUi(self.ble_window)  # 设置UI
+        self.ble_window.show()  # 显示BLE窗口
 
     def scale_model_to_fit_view(self):
         """自动缩放 SVG 图片以适应 QGraphicsView"""
@@ -390,6 +403,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.model_svg_item.setRotation(angle)
 
         print(f"Model 图像已旋转到 {angle} 度，并缩放到适应视图")
+
+
+def on_item_clicked(item):
+    """当点击 listWidget 中的项时输出其 MAC 地址"""
+    mac_address = item.text()
+    print(f"Item clicked: {mac_address}")
+    return mac_address
+
+class BLEWindow(QMainWindow, Ui_BLEWindow):
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)  # 设置UI
+        self.listWidget.itemClicked.connect(on_item_clicked)  # 绑定点击事件
+
+        # 启动异步扫描
+        self.loop = asyncio.get_event_loop()
+        self.loop.create_task(self.scan_ble_devices())
+
+    async def scan_ble_devices(self):
+        """扫描附近的 BLE 设备，并将设备 MAC 地址添加到 listWidget 中"""
+        while True:
+            devices = await BleakScanner.discover()  # 获取附近的 BLE 设备
+            for device in devices:
+                if device.address not in [self.listWidget.item(i).text() for i in range(self.listWidget.count())]:
+                    self.listWidget.addItem(device.address)  # 将设备的 MAC 地址添加到 listWidget
+            await asyncio.sleep(5)  # 每隔 5 秒扫描一次
 
 
 def main():
