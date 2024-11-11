@@ -465,7 +465,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "调车工具"))
         self.label_3.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:11pt;\">数据位</span></p></body></html>"))
         self.Bytesize.setItemText(0, _translate("MainWindow", "5"))
         self.Bytesize.setItemText(1, _translate("MainWindow", "6"))

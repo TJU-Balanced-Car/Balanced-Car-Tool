@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>Form</class>
  <widget class="QWidget" name="Form">
+  <property name="windowModality">
+   <enum>Qt::ApplicationModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -9,6 +12,9 @@
     <width>359</width>
     <height>558</height>
    </rect>
+  </property>
+  <property name="contextMenuPolicy">
+   <enum>Qt::NoContextMenu</enum>
   </property>
   <property name="windowTitle">
    <string>蓝牙串口</string>
@@ -69,7 +75,7 @@
       <property name="title">
        <string>MAC地址</string>
       </property>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
          <x>30</x>
@@ -88,7 +94,7 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QLineEdit" name="MAC1_2">
+           <widget class="QLineEdit" name="MAC1">
             <property name="maximumSize">
              <size>
               <width>25</width>
@@ -129,7 +135,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="MAC2_2">
+           <widget class="QLineEdit" name="MAC2">
             <property name="maximumSize">
              <size>
               <width>25</width>
@@ -170,7 +176,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="MAC3_2">
+           <widget class="QLineEdit" name="MAC3">
             <property name="maximumSize">
              <size>
               <width>25</width>
@@ -211,7 +217,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="MAC4_2">
+           <widget class="QLineEdit" name="MAC4">
             <property name="maximumSize">
              <size>
               <width>25</width>
@@ -252,7 +258,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="MAC5_2">
+           <widget class="QLineEdit" name="MAC5">
             <property name="maximumSize">
              <size>
               <width>25</width>
@@ -293,7 +299,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="MAC6_2">
+           <widget class="QLineEdit" name="MAC6">
             <property name="maximumSize">
              <size>
               <width>25</width>
@@ -317,7 +323,7 @@
          </layout>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton">
+         <widget class="QPushButton" name="SearchBLE">
           <property name="maximumSize">
            <size>
             <width>54</width>
@@ -347,7 +353,7 @@
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
      </property>
-     <widget class="QListWidget" name="listWidget_2">
+     <widget class="QListWidget" name="listWidget">
       <property name="geometry">
        <rect>
         <x>10</x>

@@ -4,6 +4,7 @@ import sys
 import serial
 import serial.tools.list_ports
 from PyQt5.QtWidgets import QMainWindow, QDialog
+from PyQt5.QtCore import Qt
 from PyQt5 import QtWidgets, QtCore
 from mainWindow import Ui_MainWindow
 from BLEWindow import Ui_Form as Ui_BLEWindow
@@ -119,7 +120,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ModelView.setScene(self.scene)  # 将 QGraphicsView 设置为该场景
 
         # 加载 SVG 图片并插入到场景
-        self.model_svg_item = QGraphicsSvgItem('model.svg')  # 加载本目录中的 Model.svg
+        self.model_svg_item = QGraphicsSvgItem('.\\img\\model.svg')  # 加载本目录中的 Model.svg
         self.scene.addItem(self.model_svg_item)  # 将 SVG 图片添加到场景中
 
         # 自动缩放图片适应视图
@@ -136,18 +137,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def open_ble_window(self):
         # 打开 BLEWindow 子窗口
-        self.ble_window = QDialog()  # 可以根据需要修改为QDialog或QMainWindow
-        self.ui_ble_window = Ui_BLEWindow()  # 创建BLEWindow实例
+        self.ble_window = QDialog(self)  # 将父窗口传递给 QDialog
+        self.ui_ble_window = Ui_BLEWindow()  # 创建 BLEWindow 实例
         self.ui_ble_window.setupUi(self.ble_window)  # 设置UI
-        self.ble_window.show()  # 显示BLE窗口
+
+        # 移除帮助按钮
+        self.ble_window.setWindowFlags(self.ble_window.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+
+        # 设置为模态对话框
+        self.ble_window.setModal(True)
+
+        # 显示并启动模态对话框
+        self.ble_window.exec_()  # 使用 exec_() 来启动模态对话框
 
     def scale_model_to_fit_view(self):
         """自动缩放 SVG 图片以适应 QGraphicsView"""
         # 预设已知的尺寸
         svg_width = 84  # SVG 图片的宽度
         svg_height = 214  # SVG 图片的高度
-
-        scale_factor = 1.0
+        scale_factor = 1.0 # 缩放比例
 
         # 设置缩放比例
         self.model_svg_item.setScale(scale_factor)
@@ -414,8 +422,14 @@ def on_item_clicked(item):
 class BLEWindow(QMainWindow, Ui_BLEWindow):
     def __init__(self):
         super().__init__()
+
         self.setupUi(self)  # 设置UI
-        self.listWidget.itemClicked.connect(on_item_clicked)  # 绑定点击事件
+
+        # 绑定点击事件
+        self.listWidget.itemClicked.connect(on_item_clicked)
+
+        # 绑定搜索按钮点击事件
+        self.SearchBLE.clicked.connect(self.search_ble_devices)
 
         # 启动异步扫描
         self.loop = asyncio.get_event_loop()
@@ -430,6 +444,8 @@ class BLEWindow(QMainWindow, Ui_BLEWindow):
                     self.listWidget.addItem(device.address)  # 将设备的 MAC 地址添加到 listWidget
             await asyncio.sleep(5)  # 每隔 5 秒扫描一次
 
+    def search_ble_devices(self):
+        pass
 
 def main():
     QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
