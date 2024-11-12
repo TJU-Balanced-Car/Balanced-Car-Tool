@@ -14,8 +14,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.setWindowModality(QtCore.Qt.NonModal)
-        Form.resize(359, 558)
+        Form.setWindowModality(QtCore.Qt.ApplicationModal)
+        Form.resize(358, 558)
         Form.setContextMenuPolicy(QtCore.Qt.NoContextMenu)
         self.verticalLayout = QtWidgets.QVBoxLayout(Form)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
@@ -162,6 +162,17 @@ class Ui_Form(object):
         self.frame_2.setObjectName("frame_2")
         self.listWidget = QtWidgets.QListWidget(self.frame_2)
         self.listWidget.setGeometry(QtCore.QRect(10, 10, 341, 471))
+        self.listWidget.setStyleSheet("QListWidget {\n"
+"          font-size: 15px;\n"
+"}\n"
+"\n"
+"QListWidget::item { \n"
+"    height: 40px; \n"
+"}\n"
+"\n"
+"QListWidget::item:hover { \n"
+"    background-color: rgb(229, 229, 229);\n"
+"}")
         self.listWidget.setObjectName("listWidget")
         self.verticalLayout.addWidget(self.frame_2)
 

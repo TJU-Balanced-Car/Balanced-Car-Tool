@@ -4,7 +4,7 @@ import sys
 import serial
 import serial.tools.list_ports
 from PyQt5.QtWidgets import QMainWindow, QDialog
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QThread, QTimer
 from PyQt5 import QtWidgets, QtCore
 from mainWindow import Ui_MainWindow
 from BLEWindow import Ui_Form as Ui_BLEWindow
@@ -12,6 +12,7 @@ from PyQt5.QtSvg import QGraphicsSvgItem
 import re
 import asyncio
 from bleak import BleakScanner
+
 
 
 ser = serial.Serial()
@@ -50,13 +51,13 @@ def list_serial_ports():
     ports = serial.tools.list_ports.comports()
     return [(port.device, port.description) for port in ports]
 
-class SerialThread(QtCore.QThread):
+class SerialThread(QThread):
     """串口数据读取线程"""
     data_received = QtCore.pyqtSignal(str)  # 定义信号
 
-    def __init__(self, ser):
+    def __init__(self, serial_port):
         super().__init__()
-        self.ser = ser
+        self.ser = serial_port
         self.main_window = MainWindow()
         self.running = True
 
@@ -83,6 +84,41 @@ class SerialThread(QtCore.QThread):
         """停止线程"""
         self.running = False
         self.wait()  # 等待线程结束
+
+class BLEScanThread(QThread):
+    device_found = QtCore.pyqtSignal(list)  # 用于将设备地址发回 UI
+    stop_signal = False  # 用于控制线程停止的标志
+
+    def __init__(self):
+        super().__init__()
+
+    def run(self):
+        """线程的执行体，扫描 BLE 设备"""
+        print("BLE scanning started.")
+        while not self.stop_signal:
+            devices = asyncio.run(BleakScanner.discover())  # 使用 asyncio.run() 来运行协程
+            print(f"Found devices: {devices}")
+
+            # 创建一个设备信息列表，包含设备名称和地址
+            device_info_list = []
+            for device in devices:
+                device_name = device.name if device.name else "未知设备"
+                device_address = device.address
+                device_info_list.append((device_name, device_address))  # 以元组形式存储设备名称和地址
+
+            # 发射信号，传递设备信息列表
+            self.device_found.emit(device_info_list)
+
+            QTimer.singleShot(5000, self.trigger_next_scan)  # 每隔 5 秒扫描一次
+
+    def trigger_next_scan(self):
+        """调用此函数继续扫描设备"""
+        self.run()
+
+    def stop(self):
+        """停止线程的工作"""
+        self.stop_signal = True  # 设置标志位为 True，通知线程停止
+        self.wait()  # 等待线程完成后再退出
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -132,29 +168,37 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.port_check_timer.start(5000)  # 每5000ms（5秒）检查一次串口列表
 
         # 将实例变量放在__init__方法内初始化
-        self.ui_ble_window = None
         self.ble_window = None
 
     def open_ble_window(self):
-        # 打开 BLEWindow 子窗口
-        self.ble_window = QDialog(self)  # 将父窗口传递给 QDialog
-        self.ui_ble_window = Ui_BLEWindow()  # 创建 BLEWindow 实例
-        self.ui_ble_window.setupUi(self.ble_window)  # 设置UI
+        # 创建一个 QDialog 容器并将 BLEWindow 作为 UI 设置
+        dialog = QDialog(self)  # 创建 QDialog 作为父窗口的模态对话框
+        self.ble_window = BLEWindow()  # 创建 BLEWindow 子窗口实例
+        self.ble_window.setupUi(dialog)  # 使用 BLEWindow 的 UI 设置 QDialog
 
-        # 移除帮助按钮
-        self.ble_window.setWindowFlags(self.ble_window.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+        # 连接 dialog.finished 信号到槽方法
+        dialog.finished[int].connect(self.on_ble_dialog_finished)
+
+        # 可选：移除帮助按钮
+        dialog.setWindowFlags(dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)
 
         # 设置为模态对话框
-        self.ble_window.setModal(True)
+        dialog.setModal(True)
 
         # 显示并启动模态对话框
-        self.ble_window.exec_()  # 使用 exec_() 来启动模态对话框
+        dialog.exec_()  # 使用 exec_() 来启动模态对话框
+
+    def on_ble_dialog_finished(self):
+        """当对话框关闭时，停止 BLE 扫描线程"""
+        if self.ble_window:
+            self.ble_window.close()  # 确保关闭 BLEWindow
+            print("BLEWindow has been closed.")
 
     def scale_model_to_fit_view(self):
         """自动缩放 SVG 图片以适应 QGraphicsView"""
         # 预设已知的尺寸
         svg_width = 84  # SVG 图片的宽度
-        svg_height = 214  # SVG 图片的高度
+        # svg_height = 214  # SVG 图片的高度
         scale_factor = 1.0 # 缩放比例
 
         # 设置缩放比例
@@ -167,21 +211,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 居中图像
         self.model_svg_item.setPos((self.ModelView.width() - new_width) / 2, 0)
 
-    def update_labels_with_unpacked_data(self, unpacked_data):
+    def update_labels_with_unpacked_data(self, data):
         """更新界面上所有 QLabels 的文本内容"""
-        self.Roll.setText(f"{unpacked_data.Roll:.2f}")
-        self.Motor1Speed.setText(f"{unpacked_data.Motor1Speed}")
-        self.Motor2Speed.setText(f"{unpacked_data.Motor2Speed}")
-        self.ServoAngle.setText(f"{unpacked_data.ServoAngle}")
-        self.VerticalKp.setText(f"{unpacked_data.VerticalKp:.2f}")
-        self.VerticalKi.setText(f"{unpacked_data.VerticalKi:.2f}")
-        self.VerticalKd.setText(f"{unpacked_data.VerticalKd:.2f}")
-        self.VerticalOut.setText(f"{unpacked_data.VerticalOut}")
-        self.VelocityKp.setText(f"{unpacked_data.VelocityKp:.2f}")
-        self.VelocityKi.setText(f"{unpacked_data.VelocityKi:.2f}")
-        self.VelocityOut.setText(f"{unpacked_data.VelocityOut}")
+        self.Roll.setText(f"{data.Roll:.2f}")
+        self.Motor1Speed.setText(f"{data.Motor1Speed}")
+        self.Motor2Speed.setText(f"{data.Motor2Speed}")
+        self.ServoAngle.setText(f"{data.ServoAngle}")
+        self.VerticalKp.setText(f"{data.VerticalKp:.2f}")
+        self.VerticalKi.setText(f"{data.VerticalKi:.2f}")
+        self.VerticalKd.setText(f"{data.VerticalKd:.2f}")
+        self.VerticalOut.setText(f"{data.VerticalOut}")
+        self.VelocityKp.setText(f"{data.VelocityKp:.2f}")
+        self.VelocityKi.setText(f"{data.VelocityKi:.2f}")
+        self.VelocityOut.setText(f"{data.VelocityOut}")
 
-        roll_angle = unpacked_data.Roll
+        roll_angle = data.Roll
         self.rotate_model(roll_angle)
 
     def check_ports(self):
@@ -419,33 +463,51 @@ def on_item_clicked(item):
     print(f"Item clicked: {mac_address}")
     return mac_address
 
+
+
 class BLEWindow(QMainWindow, Ui_BLEWindow):
     def __init__(self):
         super().__init__()
-
         self.setupUi(self)  # 设置UI
+        print("BLEWindow initialized.")
 
-        # 绑定点击事件
-        self.listWidget.itemClicked.connect(on_item_clicked)
+        # 创建并启动 BLE 扫描线程
+        self.ble_scan_thread = BLEScanThread()
+        self.ble_scan_thread.device_found.connect(self.add_device_to_list)
+        self.ble_scan_thread.start()
+        print("BLE scan thread started.")
 
-        # 绑定搜索按钮点击事件
-        self.SearchBLE.clicked.connect(self.search_ble_devices)
+    def add_device_to_list(self, device_info_list):
+        """更新设备列表，格式为 '设备名称 - MAC地址'"""
+        try:
+            # 清空当前列表
+            self.listWidget.clear()
 
-        # 启动异步扫描
-        self.loop = asyncio.get_event_loop()
-        self.loop.create_task(self.scan_ble_devices())
+            for device_name, device_address in device_info_list:
+                # 如果设备名称为空，使用“未知设备”
+                if not device_name:
+                    device_name = "未知设备"
+                # 如果设备名称长度大于20个字符，则截断并添加“...”
+                elif len(device_name) > 20:
+                    device_name = device_name[:20] + "..."
 
-    async def scan_ble_devices(self):
-        """扫描附近的 BLE 设备，并将设备 MAC 地址添加到 listWidget 中"""
-        while True:
-            devices = await BleakScanner.discover()  # 获取附近的 BLE 设备
-            for device in devices:
-                if device.address not in [self.listWidget.item(i).text() for i in range(self.listWidget.count())]:
-                    self.listWidget.addItem(device.address)  # 将设备的 MAC 地址添加到 listWidget
-            await asyncio.sleep(5)  # 每隔 5 秒扫描一次
+                # 将设备名称和地址以 '名称 - MAC地址' 格式添加到列表中
+                display_text = f"{device_name} - {device_address}"
+                self.listWidget.addItem(display_text)
+        except Exception as e:
+            print(f"更新设备列表时发生错误: {e}")
+
+    def closeEvent(self, event):
+        """关闭窗口时停止线程"""
+        print("closeEvent triggered.")
+        if self.ble_scan_thread and not self.ble_scan_thread.stop_signal:
+            self.ble_scan_thread.stop()  # 停止扫描线程
+        event.accept()
 
     def search_ble_devices(self):
+        """启动或停止 BLE 设备搜索的逻辑"""
         pass
+
 
 def main():
     QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)

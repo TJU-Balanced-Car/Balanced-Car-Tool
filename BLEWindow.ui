@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>359</width>
+    <width>358</width>
     <height>558</height>
    </rect>
   </property>
@@ -361,6 +361,19 @@
         <width>341</width>
         <height>471</height>
        </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QListWidget {
+	  	font-size: 15px;
+}
+
+QListWidget::item { 
+	height: 40px; 
+}
+
+QListWidget::item:hover { 
+	background-color: rgb(229, 229, 229);
+}</string>
       </property>
      </widget>
     </widget>
