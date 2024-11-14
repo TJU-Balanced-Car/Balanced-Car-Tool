@@ -2,6 +2,9 @@
 - 蓝牙断开连接后需要关闭程序再次打开才能再次连接。
 - **调试完成后一定要注意记录各个参数！**
 
+## 移植
+MAC地址需要在程序中手动修改，位置是MainWindow的mac_address变量
+
 ## 打包方式
 pyinstaller -w -F -i .\\img\\icon.ico --add-data ".\\img\\model.svg;img" -n "调车工具" main.py
 
