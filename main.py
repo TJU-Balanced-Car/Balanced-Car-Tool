@@ -1,20 +1,23 @@
 # -*- coding: utf-8 -*-
+# Author: Jacob Hu
 
 import sys
+import re
+import asyncio
 import serial
 import serial.tools.list_ports
-from PyQt5.QtWidgets import QMainWindow, QDialog
+from pathlib import Path
+from PyQt5.QtWidgets import QMainWindow, QDialog, QWidget
 from PyQt5.QtCore import Qt, QThread, QTimer
 from PyQt5 import QtWidgets, QtCore
 from mainWindow import Ui_MainWindow
 from BLEWindow import Ui_Form as Ui_BLEWindow
 from PyQt5.QtSvg import QGraphicsSvgItem
-import re
-import asyncio
-from bleak import BleakScanner
+from bleak import BleakScanner, BleakClient
+from bleak.backends.characteristic import BleakGATTCharacteristic
 
-
-
+SRC_PATH = Path.absolute(Path(__file__)).parent  # Get temp path
+icon_path = str(SRC_PATH / "img//model.svg")  # Add to get icon path
 ser = serial.Serial()
 class UnpackedData:
     def __init__(self):
@@ -85,6 +88,86 @@ class SerialThread(QThread):
         self.running = False
         self.wait()  # 等待线程结束
 
+class BLEThread(QThread):
+    update_status_signal = QtCore.pyqtSignal(int)  # 用于发送状态更新的信号
+    data_received = QtCore.pyqtSignal(str)  # 定义信号，传递数据
+
+    def __init__(self, mac_address):
+        super().__init__()
+        self.device_addr = MainWindow.mac_address
+        self.notification_characteristic="0000ffe1-0000-1000-8000-00805f9b34fb"
+        self.data_str = ""
+        self.mainwindow = MainWindow()
+        self.client = None
+        self.running = True
+
+    # 监听回调函数，此处为打印消息
+    def notification_handler(self, characteristic: BleakGATTCharacteristic, data: bytearray):
+        try:
+            self.data_str += data.decode('utf-8')
+            if self.data_str.endswith('\n'):
+                print(self.data_str)
+                if self.running:
+                    self.data_received.emit(self.data_str)  # 通过信号传递数据
+                    # self.mainwindow.update_received_data(data=self.data_str)  # 调用解包函数处理接收到的数据
+                self.data_str = ""
+        except UnicodeDecodeError as e:
+            print(f"解码错误: {e}")
+            self.data_str = ""
+
+    def disconnected_callback(self, client):
+        print("Disconnected callback called!")
+
+    def run(self):
+        """在子线程中运行 BLE 连接"""
+        while self.running:
+            try:
+                async def connect_ble():
+                    print("starting scan...")
+
+                    # 基于MAC地址查找设备
+                    device = await BleakScanner.find_device_by_address(self.device_addr, cb=dict(use_bdaddr=False))
+                    if device is None:
+                        print(f"Could not find device with address '{self.device_addr}'")
+                        return
+
+                    # 事件定义
+                    disconnected_event = asyncio.Event()
+
+                    # 创建客户端连接
+                    print("connecting to device...")
+                    async with BleakClient(device, disconnected_callback=self.disconnected_callback) as client:
+                        self.client = client
+                        print("Connected")
+                        self.update_status_signal.emit(0)  # 发送连接成功的信号
+                        await client.start_notify(self.notification_characteristic, self.notification_handler)
+                        await disconnected_event.wait()  # 等待直到设备断开连接
+                        self.update_status_signal.emit(2)  # 发送断开连接的信号
+                        print("BLE disconnected.")
+
+                # 运行异步连接任务
+                asyncio.run(connect_ble())
+                print("BLE connected.")
+
+            except Exception as e:
+                self.update_status_signal.emit(1)  # 发送连接失败的信号
+                print(f"BLEThread running error: {e}")
+
+    def get_client(self):
+        return self.client
+
+    def get_uuid(self):
+        return self.notification_characteristic
+
+    def stop(self):
+        """停止线程"""
+        # 设置停止标志
+        self.running = False
+        # 停止线程
+        # self.quit()  # 请求线程退出
+        # self.wait()  # 等待线程真正结束
+        self.terminate()
+
 class BLEScanThread(QThread):
     device_found = QtCore.pyqtSignal(list)  # 用于将设备地址发回 UI
     stop_signal = False  # 用于控制线程停止的标志
@@ -122,8 +205,12 @@ class BLEScanThread(QThread):
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
+    mac_address = "00:15:83:00:A5:72"
+
     def __init__(self):
         super(MainWindow, self).__init__()
+        self.ble_thread = None
+        self.status_label = None
         self.setupUi(self)
         self.unpacked_data = unpacked_data
         self.populate_ports()  # 填充 Port 下拉菜单
@@ -142,7 +229,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # 连接 SerialBtn 的点击信号到槽函数
         self.SerialBtn.clicked.connect(self.toggle_serial_port)
         # 连接 BLEBtn 的点击信号到槽函数
-        self.BLEBtn.clicked.connect(self.open_ble_window)
+        self.BLEBtn.clicked.connect(self.BLEBtn_clicked)
 
         # 串口线程
         self.serial_thread = None
@@ -150,13 +237,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # 标志串口是否已打开
         self.serial_open = False
+        self.ble_open = False
 
         # 创建场景和视图
         self.scene = QtWidgets.QGraphicsScene()
         self.ModelView.setScene(self.scene)  # 将 QGraphicsView 设置为该场景
 
         # 加载 SVG 图片并插入到场景
-        self.model_svg_item = QGraphicsSvgItem('.\\img\\model.svg')  # 加载本目录中的 Model.svg
+        # self.model_svg_item = QGraphicsSvgItem('.\\img\\model.svg')  # 加载本目录中的 Model.svg
+        self.model_svg_item = QGraphicsSvgItem(icon_path)  # 加载本目录中的 Model.svg
         self.scene.addItem(self.model_svg_item)  # 将 SVG 图片添加到场景中
 
         # 自动缩放图片适应视图
@@ -169,6 +258,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # 将实例变量放在__init__方法内初始化
         self.ble_window = None
+
+    def BLEBtn_clicked(self):
+        if self.ble_open:
+            self.disconnect_ble_device()
+        else:
+            # self.open_ble_window()
+            self.connect_ble_device()
 
     def open_ble_window(self):
         # 创建一个 QDialog 容器并将 BLEWindow 作为 UI 设置
@@ -191,8 +287,65 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def on_ble_dialog_finished(self):
         """当对话框关闭时，停止 BLE 扫描线程"""
         if self.ble_window:
-            self.ble_window.close()  # 确保关闭 BLEWindow
+            self.ble_window.close()
             print("BLEWindow has been closed.")
+
+    def connect_ble_device(self):
+        """连接BLE设备并接收串口数据"""
+        if MainWindow.mac_address:
+            # 置标志为 True
+            self.ble_open = True
+            # 修改按钮文字为“关闭蓝牙串口”
+            self.BLEBtn.setText("关闭蓝牙串口")
+            # 禁用 BLEBtn
+            self.SerialBtn.setEnabled(False)
+
+            # 创建并启动 BLE 连接线程
+            self.ble_thread = BLEThread(MainWindow.mac_address)
+            self.ble_thread.update_status_signal.connect(self.BLE_start_status)  # 连接状态更新信号
+            self.ble_thread.start()  # 启动 BLE 连接线程
+
+            self.ble_thread.data_received.connect(self.update_received_data)
+
+    # async def stop_ble_notification(self, client, uuid):
+    #     await client.stop_notify(uuid)
+
+    def disconnect_ble_device(self):
+        """关闭串口"""
+        client = self.ble_thread.get_client()
+        uuid = self.ble_thread.get_uuid()
+        try:
+            if self.ble_thread:
+                # asyncio.run(self.stop_ble_notification(client, uuid))
+                self.ble_thread.stop()  # 停止线程
+            print(f"蓝牙串口已关闭")
+            self.ble_open = False  # 标记串口已关闭
+            # 修改按钮文字为“打开蓝牙串口”
+            self.BLEBtn.setText("打开蓝牙串口")
+            # 启用 SerialBtn
+            self.SerialBtn.setEnabled(True)
+            # 更新 ConnectStatus 的 QLabel 控件
+            self.ConnectStatus.setText(f"蓝牙断开连接")
+            self.ConnectStatus.setStyleSheet("color: red;")  # 设置为红色
+        except Exception as e:
+            print(f"蓝牙断开时发生错误: {e}")
+            self.ConnectStatus.setText(f"蓝牙断开失败")
+            self.ConnectStatus.setStyleSheet("color: red;")
+
+    def BLE_start_status(self, status):
+        """更新 UI 上的 BLE 连接状态"""
+        if status == 0:
+            self.ConnectStatus.setText(f"蓝牙已连接")
+            self.ConnectStatus.setStyleSheet("color: green;")  # 设置为绿色
+        elif status == 1:
+            self.ConnectStatus.setText(f"蓝牙连接失败")
+            self.ConnectStatus.setStyleSheet("color: red;")
+        elif status == 2:
+            self.ConnectStatus.setText(f"蓝牙断开连接")
+            self.ConnectStatus.setStyleSheet("color: red;")
+        else:
+            self.ConnectStatus.setText(f"蓝牙连接失败")
+            self.ConnectStatus.setStyleSheet("color: red;")
 
     def scale_model_to_fit_view(self):
         """自动缩放 SVG 图片以适应 QGraphicsView"""
@@ -379,10 +532,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.ConnectStatus.setStyleSheet("color: green;")  # 设置为绿色
             else:
                 print("串口打开失败！")
-                self.update_connect_status_failure(f"{ser.port} 打开失败")
+                self.ConnectStatus.setText(f"{ser.port} 打开失败")
+                self.ConnectStatus.setStyleSheet("color: red;")  # 设置为红色
         except Exception as e:
             print(f"串口打开时发生错误: {e}")
-            self.update_connect_status_failure(f"{ser.port} 打开失败")
+            self.ConnectStatus.setText(f"{ser.port} 打开失败")
+            self.ConnectStatus.setStyleSheet("color: red;")  # 设置为红色
 
     def close_serial_port(self):
         """关闭串口"""
@@ -404,12 +559,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.ConnectStatus.setStyleSheet("color: red;")  # 设置为红色
         except Exception as e:
             print(f"关闭串口时发生错误: {e}")
-            self.update_connect_status_failure(f"{ser.port} 关闭失败: {e}")
-
-    def update_connect_status_failure(self, message):
-        """更新 ConnectStatus 显示失败消息"""
-        self.ConnectStatus.setText(message)
-        self.ConnectStatus.setStyleSheet("color: red;")  # 设置为红色
+            self.ConnectStatus.setText(f"{ser.port} 关闭失败")
+            self.ConnectStatus.setStyleSheet("color: red;")  # 设置为红色
 
     def update_received_data(self, data):
         """接收到数据并存储"""
@@ -457,19 +608,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         print(f"Model 图像已旋转到 {angle} 度，并缩放到适应视图")
 
 
-def on_item_clicked(item):
-    """当点击 listWidget 中的项时输出其 MAC 地址"""
-    mac_address = item.text()
-    print(f"Item clicked: {mac_address}")
-    return mac_address
-
-
-
 class BLEWindow(QMainWindow, Ui_BLEWindow):
     def __init__(self):
         super().__init__()
         self.setupUi(self)  # 设置UI
         print("BLEWindow initialized.")
+        self.listWidget.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+
+        # 连接 listWidget 的 itemClicked 信号
+        self.listWidget.itemDoubleClicked.connect(self.on_item_clicked)
+        self.SearchBLE.clicked.connect(self.search_ble_devices)
 
         # 创建并启动 BLE 扫描线程
         self.ble_scan_thread = BLEScanThread()
@@ -497,6 +645,15 @@ class BLEWindow(QMainWindow, Ui_BLEWindow):
         except Exception as e:
             print(f"更新设备列表时发生错误: {e}")
 
+    def on_item_clicked(self, item):
+        """处理双击列表项的操作"""
+        if item.isSelected():  # 判断项是否选中
+            from PyQt5.QtWidgets import QMessageBox
+            QMessageBox.information(None, "提示", "您选择的是：" + item.text(), QMessageBox.Ok)
+        # 打印并返回对应的device_address
+        device_info = item.text()
+        print(f"点击了设备: {device_info}")
+
     def closeEvent(self, event):
         """关闭窗口时停止线程"""
         print("closeEvent triggered.")
@@ -506,7 +663,17 @@ class BLEWindow(QMainWindow, Ui_BLEWindow):
 
     def search_ble_devices(self):
         """启动或停止 BLE 设备搜索的逻辑"""
-        pass
+        # 获取MAC1~6的输入值，拼成MAC地址
+        mac1 = self.MAC1.text()
+        mac2 = self.MAC2.text()
+        mac3 = self.MAC3.text()
+        mac4 = self.MAC4.text()
+        mac5 = self.MAC5.text()
+        mac6 = self.MAC6.text()
+        mac_address = f"{mac1}:{mac2}:{mac3}:{mac4}:{mac5}:{mac6}"
+        print(f"搜索的MAC地址是: {mac_address}")
+        MainWindow.mac_address = mac_address  # 将MAC地址存储到MainWindow类的类变量中
+
 
 
 def main():

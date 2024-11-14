@@ -13,6 +13,18 @@
     <height>558</height>
    </rect>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>358</width>
+    <height>558</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>358</width>
+    <height>558</height>
+   </size>
+  </property>
   <property name="contextMenuPolicy">
    <enum>Qt::NoContextMenu</enum>
   </property>
@@ -364,7 +376,7 @@
       </property>
       <property name="styleSheet">
        <string notr="true">QListWidget {
-	  	font-size: 15px;
+	font-size: 15px;
 }
 
 QListWidget::item { 
@@ -372,7 +384,12 @@ QListWidget::item {
 }
 
 QListWidget::item:hover { 
-	background-color: rgb(229, 229, 229);
+	background-color: rgb(240, 240, 240);
+}
+
+QListView::item:selected:hover {
+    color: rgb(0, 0, 0);
+	background-color: rgb(204, 232, 255);
 }</string>
       </property>
      </widget>

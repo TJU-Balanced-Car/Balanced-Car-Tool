@@ -16,6 +16,8 @@ class Ui_Form(object):
         Form.setObjectName("Form")
         Form.setWindowModality(QtCore.Qt.ApplicationModal)
         Form.resize(358, 558)
+        Form.setMinimumSize(QtCore.QSize(358, 558))
+        Form.setMaximumSize(QtCore.QSize(358, 558))
         Form.setContextMenuPolicy(QtCore.Qt.NoContextMenu)
         self.verticalLayout = QtWidgets.QVBoxLayout(Form)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
@@ -163,7 +165,7 @@ class Ui_Form(object):
         self.listWidget = QtWidgets.QListWidget(self.frame_2)
         self.listWidget.setGeometry(QtCore.QRect(10, 10, 341, 471))
         self.listWidget.setStyleSheet("QListWidget {\n"
-"          font-size: 15px;\n"
+"    font-size: 15px;\n"
 "}\n"
 "\n"
 "QListWidget::item { \n"
@@ -171,7 +173,12 @@ class Ui_Form(object):
 "}\n"
 "\n"
 "QListWidget::item:hover { \n"
-"    background-color: rgb(229, 229, 229);\n"
+"    background-color: rgb(240, 240, 240);\n"
+"}\n"
+"\n"
+"QListView::item:selected:hover {\n"
+"    color: rgb(0, 0, 0);\n"
+"    background-color: rgb(204, 232, 255);\n"
 "}")
         self.listWidget.setObjectName("listWidget")
         self.verticalLayout.addWidget(self.frame_2)
