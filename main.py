@@ -37,16 +37,16 @@ unpacked_data = UnpackedData()
 # 正则表达式匹配模式
 pattern = {
     'Roll': r'R:\s*([+-]?\d*\.\d+|\d+)',  # 匹配R:后面的float数字
-    'Motor1Speed': r'M1:\s*(\d+)',         # 匹配M1:后面的int数字
-    'Motor2Speed': r'M2:\s*(\d+)',         # 匹配M2:后面的int数字
-    'ServoAngle': r'S:\s*(\d+)',           # 匹配S:后面的int数字
+    'Motor1Speed': r'M1:\s*([+-]?\d+)',         # 匹配M1:后面的int数字
+    'Motor2Speed': r'M2:\s*([+-]?\d+)',         # 匹配M2:后面的int数字
+    'ServoAngle': r'S:\s*([+-]?\d+)',           # 匹配S:后面的int数字
     'VerticalKp': r'Lp:\s*([+-]?\d*\.\d+|\d+)',  # 匹配Lp:后的float数字
     'VerticalKi': r'Li:\s*([+-]?\d*\.\d+|\d+)',  # 匹配Li:后的float数字
     'VerticalKd': r'Ld:\s*([+-]?\d*\.\d+|\d+)',  # 匹配Ld:后的float数字
-    'VerticalOut': r'Lo:\s*(\d+)',         # 匹配Lo:后的int数字
+    'VerticalOut': r'Lo:\s*([+-]?\d+)',         # 匹配Lo:后的int数字
     'VelocityKp': r'Yp:\s*([+-]?\d*\.\d+|\d+)',  # 匹配Yp:后的float数字
     'VelocityKi': r'Yi:\s*([+-]?\d*\.\d+|\d+)',  # 匹配Yi:后的float数字
-    'VelocityOut': r'Yo:\s*(\d+)'          # 匹配Yo:后的int数字
+    'VelocityOut': r'Yo:\s*([+-]?\d+)'          # 匹配Yo:后的int数字
 }
 
 def list_serial_ports():
@@ -367,16 +367,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def update_labels_with_unpacked_data(self, data):
         """更新界面上所有 QLabels 的文本内容"""
         self.Roll.setText(f"{data.Roll:.2f}")
-        self.Motor1Speed.setText(f"{data.Motor1Speed}")
-        self.Motor2Speed.setText(f"{data.Motor2Speed}")
-        self.ServoAngle.setText(f"{data.ServoAngle}")
+        self.Motor1Speed.setText(f"{data.Motor1Speed:d}")
+        self.Motor2Speed.setText(f"{data.Motor2Speed:d}")
+        self.ServoAngle.setText(f"{data.ServoAngle:d}")
         self.VerticalKp.setText(f"{data.VerticalKp:.2f}")
         self.VerticalKi.setText(f"{data.VerticalKi:.2f}")
         self.VerticalKd.setText(f"{data.VerticalKd:.2f}")
-        self.VerticalOut.setText(f"{data.VerticalOut}")
+        self.VerticalOut.setText(f"{data.VerticalOut:d}") #有符号整型
         self.VelocityKp.setText(f"{data.VelocityKp:.2f}")
         self.VelocityKi.setText(f"{data.VelocityKi:.2f}")
-        self.VelocityOut.setText(f"{data.VelocityOut}")
+        self.VelocityOut.setText(f"{data.VelocityOut:d}")
 
         roll_angle = data.Roll
         self.rotate_model(roll_angle)

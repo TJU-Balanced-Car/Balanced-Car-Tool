@@ -258,7 +258,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_21.addWidget(self.ServoAngle)
         self.verticalLayout_4.addLayout(self.horizontalLayout_21)
         self.ModelView = QtWidgets.QGraphicsView(self.frame_Data)
-        self.ModelView.setGeometry(QtCore.QRect(50, 20, 201, 231))
+        self.ModelView.setGeometry(QtCore.QRect(30, 20, 240, 231))
         self.ModelView.setStyleSheet("QGraphicsView {\n"
 "    border: none;\n"
 "}")
