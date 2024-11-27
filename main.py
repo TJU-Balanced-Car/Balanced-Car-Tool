@@ -25,28 +25,39 @@ class UnpackedData:
         self.Motor1Speed = 0
         self.Motor2Speed = 0
         self.ServoAngle = 0
-        self.VerticalKp = 0.0
-        self.VerticalKi = 0.0
-        self.VerticalKd = 0.0
-        self.VerticalOut = 0
-        self.VelocityKp = 0.0
-        self.VelocityKi = 0.0
-        self.VelocityOut = 0
+        self.velKp = 0.0
+        self.velKi = 0.0
+        self.velKd = 0.0
+        self.velOut = 0.0
+        self.angleKp = 0.0
+        self.angleKi = 0.0
+        self.angleKd = 0.0
+        self.angleOut = 0.0
+        self.accKp = 0.0
+        self.accKi = 0.0
+        self.accKd = 0.0
+        self.accOut = 0.0
+
 # 创建UnpackedData实例
 unpacked_data = UnpackedData()
 # 正则表达式匹配模式
 pattern = {
-    'Roll': r'R:\s*([+-]?\d*\.\d+|\d+)',  # 匹配R:后面的float数字
-    'Motor1Speed': r'M1:\s*([+-]?\d+)',         # 匹配M1:后面的int数字
-    'Motor2Speed': r'M2:\s*([+-]?\d+)',         # 匹配M2:后面的int数字
-    'ServoAngle': r'S:\s*([+-]?\d+)',           # 匹配S:后面的int数字
-    'VerticalKp': r'Lp:\s*([+-]?\d*\.\d+|\d+)',  # 匹配Lp:后的float数字
-    'VerticalKi': r'Li:\s*([+-]?\d*\.\d+|\d+)',  # 匹配Li:后的float数字
-    'VerticalKd': r'Ld:\s*([+-]?\d*\.\d+|\d+)',  # 匹配Ld:后的float数字
-    'VerticalOut': r'Lo:\s*([+-]?\d+)',         # 匹配Lo:后的int数字
-    'VelocityKp': r'Yp:\s*([+-]?\d*\.\d+|\d+)',  # 匹配Yp:后的float数字
-    'VelocityKi': r'Yi:\s*([+-]?\d*\.\d+|\d+)',  # 匹配Yi:后的float数字
-    'VelocityOut': r'Yo:\s*([+-]?\d+)'          # 匹配Yo:后的int数字
+    'Roll':         r'R:\s*([+-]?\d*\.\d+|\d+)',     # 匹配R:后面的float数字
+    'Motor1Speed':  r'M1:\s*([+-]?\d+)',             # 匹配M1:后面的int数字
+    'Motor2Speed':  r'M2:\s*([+-]?\d+)',             # 匹配M2:后面的int数字
+    'ServoAngle':   r'S:\s*([+-]?\d+)',              # 匹配S:后面的int数字
+    'velKp':        r'Vp:\s*([+-]?\d*\.\d+|\d+)',    # 匹配Vp:后的float数字
+    'velKi':        r'Vi:\s*([+-]?\d*\.\d+|\d+)',    # 匹配Vi:后的float数字
+    'velKd':        r'Vd:\s*([+-]?\d*\.\d+|\d+)',    # 匹配Vd:后的float数字
+    'velOut':       r'Vo:\s*([+-]?\d*\.\d+|\d+)',    # 匹配Vo:后的float数字
+    'angleKp':      r'Ap:\s*([+-]?\d*\.\d+|\d+)',    # 匹配Ap:后的float数字
+    'angleKi':      r'Ai:\s*([+-]?\d*\.\d+|\d+)',    # 匹配Ai:后的float数字
+    'angleKd':      r'Ad:\s*([+-]?\d*\.\d+|\d+)',    # 匹配Ad:后的float数字
+    'angleOut':     r'Ao:\s*([+-]?\d*\.\d+|\d+)',    # 匹配Ao:后的float数字
+    'accKp':        r'Cp:\s*([+-]?\d*\.\d+|\d+)',    # 匹配Cp:后的float数字
+    'accKi':        r'Ci:\s*([+-]?\d*\.\d+|\d+)',    # 匹配Ci:后的float数字
+    'accKd':        r'Cd:\s*([+-]?\d*\.\d+|\d+)',    # 匹配Cd:后的float数字
+    'accOut':       r'Co:\s*([+-]?\d*\.\d+|\d+)',    # 匹配Co:后的float数字
 }
 
 def list_serial_ports():
@@ -370,13 +381,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.Motor1Speed.setText(f"{data.Motor1Speed:d}")
         self.Motor2Speed.setText(f"{data.Motor2Speed:d}")
         self.ServoAngle.setText(f"{data.ServoAngle:d}")
-        self.VerticalKp.setText(f"{data.VerticalKp:.2f}")
-        self.VerticalKi.setText(f"{data.VerticalKi:.2f}")
-        self.VerticalKd.setText(f"{data.VerticalKd:.2f}")
-        self.VerticalOut.setText(f"{data.VerticalOut:d}") #有符号整型
-        self.VelocityKp.setText(f"{data.VelocityKp:.4f}")
-        self.VelocityKi.setText(f"{data.VelocityKi:.4f}")
-        self.VelocityOut.setText(f"{data.VelocityOut:d}")
+        self.velKp.setText(f"{data.velKp:.3f}")
+        self.velKi.setText(f"{data.velKi:.3f}")
+        self.velKd.setText(f"{data.velKd:.3f}")
+        self.velOut.setText(f"{data.velOut:2f}")
+        self.angleKp.setText(f"{data.angleKp:.3f}")
+        self.angleKi.setText(f"{data.angleKi:.3f}")
+        self.angleKd.setText(f"{data.angleKi:.3f}")
+        self.angleOut.setText(f"{data.angleOut:2f}")
+        self.accKp.setText(f"{data.accKp:.3f}")
+        self.accKi.setText(f"{data.accKi:.3f}")
+        self.accKd.setText(f"{data.accKd:.3f}")
+        self.accOut.setText(f"{data.accOut:2f}")
 
         roll_angle = data.Roll
         self.rotate_model(roll_angle)
