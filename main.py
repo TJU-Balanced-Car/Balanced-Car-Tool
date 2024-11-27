@@ -374,8 +374,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.VerticalKi.setText(f"{data.VerticalKi:.2f}")
         self.VerticalKd.setText(f"{data.VerticalKd:.2f}")
         self.VerticalOut.setText(f"{data.VerticalOut:d}") #有符号整型
-        self.VelocityKp.setText(f"{data.VelocityKp:.2f}")
-        self.VelocityKi.setText(f"{data.VelocityKi:.2f}")
+        self.VelocityKp.setText(f"{data.VelocityKp:.4f}")
+        self.VelocityKi.setText(f"{data.VelocityKi:.4f}")
         self.VelocityOut.setText(f"{data.VelocityOut:d}")
 
         roll_angle = data.Roll
