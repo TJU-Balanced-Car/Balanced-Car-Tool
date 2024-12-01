@@ -630,22 +630,25 @@
           </font>
          </property>
          <property name="title">
-          <string>直立环</string>
+          <string>角度环</string>
          </property>
-         <widget class="QWidget" name="layoutWidget">
+         <widget class="QWidget" name="">
           <property name="geometry">
            <rect>
-            <x>100</x>
+            <x>60</x>
             <y>30</y>
-            <width>169</width>
-            <height>140</height>
+            <width>373</width>
+            <height>90</height>
            </rect>
           </property>
-          <layout class="QVBoxLayout" name="verticalLayout_2">
-           <property name="spacing">
-            <number>14</number>
+          <layout class="QGridLayout" name="gridLayout_4">
+           <property name="horizontalSpacing">
+            <number>39</number>
            </property>
-           <item>
+           <property name="verticalSpacing">
+            <number>6</number>
+           </property>
+           <item row="0" column="0">
             <layout class="QHBoxLayout" name="horizontalLayout_11">
              <item>
               <widget class="QLabel" name="label_12">
@@ -673,7 +676,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="VerticalKp">
+              <widget class="QLabel" name="angleKp">
                <property name="minimumSize">
                 <size>
                  <width>122</width>
@@ -693,7 +696,7 @@
              </item>
             </layout>
            </item>
-           <item>
+           <item row="1" column="0">
             <layout class="QHBoxLayout" name="horizontalLayout_12">
              <item>
               <widget class="QLabel" name="label_14">
@@ -721,7 +724,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="VerticalKi">
+              <widget class="QLabel" name="angleKi">
                <property name="minimumSize">
                 <size>
                  <width>122</width>
@@ -741,7 +744,7 @@
              </item>
             </layout>
            </item>
-           <item>
+           <item row="2" column="0">
             <layout class="QHBoxLayout" name="horizontalLayout_13">
              <item>
               <widget class="QLabel" name="label_16">
@@ -769,7 +772,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="VerticalKd">
+              <widget class="QLabel" name="angleKd">
                <property name="minimumSize">
                 <size>
                  <width>122</width>
@@ -789,7 +792,7 @@
              </item>
             </layout>
            </item>
-           <item>
+           <item row="2" column="1">
             <layout class="QHBoxLayout" name="horizontalLayout_18">
              <item>
               <widget class="QLabel" name="label_26">
@@ -817,7 +820,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="VerticalOut">
+              <widget class="QLabel" name="angleOut">
                <property name="minimumSize">
                 <size>
                  <width>122</width>
@@ -841,7 +844,7 @@
          </widget>
         </widget>
        </item>
-       <item row="2" column="0">
+       <item row="4" column="0">
         <widget class="QFrame" name="frame_2">
          <property name="maximumSize">
           <size>
@@ -870,8 +873,231 @@
          </widget>
         </widget>
        </item>
-       <item row="1" column="0">
+       <item row="2" column="0">
         <widget class="QGroupBox" name="groupBox_2">
+         <property name="font">
+          <font>
+           <family>黑体</family>
+           <pointsize>16</pointsize>
+          </font>
+         </property>
+         <property name="title">
+          <string>角速度环</string>
+         </property>
+         <widget class="QWidget" name="">
+          <property name="geometry">
+           <rect>
+            <x>60</x>
+            <y>30</y>
+            <width>373</width>
+            <height>94</height>
+           </rect>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_5">
+           <property name="horizontalSpacing">
+            <number>39</number>
+           </property>
+           <property name="verticalSpacing">
+            <number>6</number>
+           </property>
+           <item row="0" column="0">
+            <layout class="QHBoxLayout" name="horizontalLayout_25">
+             <item>
+              <widget class="QLabel" name="label_19">
+               <property name="minimumSize">
+                <size>
+                 <width>36</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>36</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>小米兰亭</family>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>Kp：</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="accKp">
+               <property name="minimumSize">
+                <size>
+                 <width>122</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>小米兰亭</family>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>0</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="1" column="0">
+            <layout class="QHBoxLayout" name="horizontalLayout_26">
+             <item>
+              <widget class="QLabel" name="label_21">
+               <property name="minimumSize">
+                <size>
+                 <width>36</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>36</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>小米兰亭</family>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>Ki：</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="accKi">
+               <property name="minimumSize">
+                <size>
+                 <width>122</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>小米兰亭</family>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>0</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="2" column="0">
+            <layout class="QHBoxLayout" name="horizontalLayout_27">
+             <item>
+              <widget class="QLabel" name="label_22">
+               <property name="minimumSize">
+                <size>
+                 <width>36</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>36</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>小米兰亭</family>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>Kd：</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="accKd">
+               <property name="minimumSize">
+                <size>
+                 <width>122</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>小米兰亭</family>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>0</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="2" column="1">
+            <layout class="QHBoxLayout" name="horizontalLayout_28">
+             <item>
+              <widget class="QLabel" name="label_29">
+               <property name="minimumSize">
+                <size>
+                 <width>36</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>36</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>小米兰亭</family>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>Out：</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="accOut">
+               <property name="minimumSize">
+                <size>
+                 <width>122</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>小米兰亭</family>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>0</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QGroupBox" name="groupBox_3">
          <property name="font">
           <font>
            <family>黑体</family>
@@ -881,20 +1107,20 @@
          <property name="title">
           <string>速度环</string>
          </property>
-         <widget class="QWidget" name="layoutWidget">
+         <widget class="QWidget" name="">
           <property name="geometry">
            <rect>
-            <x>100</x>
-            <y>40</y>
-            <width>168</width>
-            <height>112</height>
+            <x>60</x>
+            <y>30</y>
+            <width>373</width>
+            <height>86</height>
            </rect>
           </property>
-          <layout class="QVBoxLayout" name="verticalLayout_3">
-           <property name="spacing">
-            <number>19</number>
+          <layout class="QGridLayout" name="gridLayout_6">
+           <property name="horizontalSpacing">
+            <number>39</number>
            </property>
-           <item>
+           <item row="0" column="0">
             <layout class="QHBoxLayout" name="horizontalLayout_14">
              <item>
               <widget class="QLabel" name="label_18">
@@ -922,7 +1148,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="VelocityKp">
+              <widget class="QLabel" name="velKp">
                <property name="minimumSize">
                 <size>
                  <width>122</width>
@@ -942,7 +1168,7 @@
              </item>
             </layout>
            </item>
-           <item>
+           <item row="1" column="0">
             <layout class="QHBoxLayout" name="horizontalLayout_15">
              <item>
               <widget class="QLabel" name="label_20">
@@ -970,7 +1196,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="VelocityKi">
+              <widget class="QLabel" name="velKi">
                <property name="minimumSize">
                 <size>
                  <width>122</width>
@@ -990,7 +1216,55 @@
              </item>
             </layout>
            </item>
-           <item>
+           <item row="2" column="0">
+            <layout class="QHBoxLayout" name="horizontalLayout_29">
+             <item>
+              <widget class="QLabel" name="label_23">
+               <property name="minimumSize">
+                <size>
+                 <width>36</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>36</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>小米兰亭</family>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>Kd：</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="velKd">
+               <property name="minimumSize">
+                <size>
+                 <width>122</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>小米兰亭</family>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>0</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="2" column="1">
             <layout class="QHBoxLayout" name="horizontalLayout_19">
              <item>
               <widget class="QLabel" name="label_28">
@@ -1018,7 +1292,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="VelocityOut">
+              <widget class="QLabel" name="velOut">
                <property name="minimumSize">
                 <size>
                  <width>122</width>
